@@ -32,4 +32,10 @@ public class ContentController {
 
         return ResponseEntity.status(HttpStatus.OK).body(contentService.updateContent(id, contentRequest));
     }
+
+    @DeleteMapping("{/id}")
+    public ResponseEntity<Void> deleteContent(@PathVariable Long id){
+        contentService.deleteContent(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
