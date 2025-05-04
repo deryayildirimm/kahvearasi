@@ -50,10 +50,9 @@ Amaç: Güne edebiyatla, huzurla ve sade bir keyifle başlamalarını sağlamak.
 ##  Not
 
 ⚠️ Bu yapılandırmalar sadece **geliştirme ortamı** içindir.  
-Gerçek şifreler, bağlantı adresleri ve hassas bilgiler paylaşılmamaktadır.  
-Gizli bilgiler ileride `.env` dosyasına taşınacak ve  
-`application.yml` dosyası örnek sürümüyle (`application-sample.yml`) değiştirilecektir.
+Gerçek şifreler, bağlantı adresleri ve hassas bilgiler paylaşılmamaktadır.
 
+---
 ## 🔧 application.yml Yapılandırması
 
 Bu projeyi çalıştırabilmek için `src/main/resources/application.yml` dosyasını **kendiniz oluşturmanız** gerekir.  
