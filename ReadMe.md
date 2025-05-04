@@ -47,21 +47,47 @@ Amaç: Güne edebiyatla, huzurla ve sade bir keyifle başlamalarını sağlamak.
 
 ---
 
-## 📁 Proje Yapısı
-
-```text
-kahvearasi/
-├── src/...
-├── compose.yaml
-└── README.md
-```
-
----
-
-## 🔐 Not
+##  Not
 
 ⚠️ Bu yapılandırmalar sadece **geliştirme ortamı** içindir.  
 Gerçek şifreler, bağlantı adresleri ve hassas bilgiler paylaşılmamaktadır.  
 Gizli bilgiler ileride `.env` dosyasına taşınacak ve  
 `application.yml` dosyası örnek sürümüyle (`application-sample.yml`) değiştirilecektir.
 
+## 🔧 application.yml Yapılandırması
+
+Bu projeyi çalıştırabilmek için `src/main/resources/application.yml` dosyasını **kendiniz oluşturmanız** gerekir.  
+Aşağıdaki örnek şablona göre kendi bilgilerinizi girerek oluşturabilirsiniz:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/mydatabase
+    username: myuser
+    password: secret
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      direct:
+        auto-startup: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your.email@gmail.com
+    password: your_app_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
