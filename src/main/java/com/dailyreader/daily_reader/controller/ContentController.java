@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/contents")
 public class ContentController {
 
-    private ContentService contentService;
+    private final ContentService contentService;
+
+    public ContentController(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
 
     @PostMapping()
@@ -33,7 +37,7 @@ public class ContentController {
         return ResponseEntity.status(HttpStatus.OK).body(contentService.updateContent(id, contentRequest));
     }
 
-    @DeleteMapping("{/id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContent(@PathVariable Long id){
         contentService.deleteContent(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

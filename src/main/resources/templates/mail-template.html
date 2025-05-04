@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="eng" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Reader</title>
+</head>
+<body>
+    <h2>Good morning, <span th:text="${userName}">User</span>!</h2>
+    <p>Here is your daily content:</p>
+
+    <h3 th:text="${contentTitle}">Title</h3>
+    <p th:text="${contentBody}">Content body</p>
+
+    <br/>
+    <p style="font-size: small; color: gray;">Have a great day!</p>
+</body>
+</html>
