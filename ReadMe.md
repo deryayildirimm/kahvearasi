@@ -11,12 +11,12 @@ Amaç: Güne edebiyatla, huzurla ve sade bir keyifle başlamalarını sağlamak.
 
 ## ⚙️ Kullanılan Teknolojiler
 
-- Java 21
-- Spring Boot 3
-- PostgreSQL (Docker ile)
-- Redis (içerik önbellekleme için _ eklenicek)
-- RabbitMQ (mesaj kuyruğu ve asenkron işlemler için)
-- Spring Mail (e-posta gönderimi )
+- Java 21 , Spring Boot 3
+- PostgreSQL 
+- Redis 
+- RabbitMQ 
+- Spring Mail 
+- ELK (ElasticSearch - Logstash- Kibana)
 - Docker Compose
 - Swagger UI (API dokümantasyonu)
 - GitHub Actions (CI/CD – ileride eklenecek)
@@ -42,10 +42,31 @@ Amaç: Güne edebiyatla, huzurla ve sade bir keyifle başlamalarını sağlamak.
    ```
    http://localhost:8080/swagger-ui.html
    ```
+4. Kibana arayüzünden loglara ulaş:
+   http://localhost:5601
 
-4. Veritabanı bağlantısı ve yapılandırma, `application.yml` içinde yapılmaktadır. Geliştirme ortamı için örnek değerler kullanılmaktadır.
+5. Veritabanı bağlantısı ve yapılandırma, `application.yml` içinde yapılmaktadır. Geliştirme ortamı için örnek değerler kullanılmaktadır.
 
 ---
+
+## Uygulama Senaryosu
+1. Kullanıcılar sisteme sadece e-posta adresleriyle kayıt olur.
+2. Günlük içerikler önceden sisteme yüklenmiştir.
+3. Her sabah uygun zaman geldiğinde:
+   * Gönderilecek içerik belirlenir.
+   * RabbitMQ kuyruğuna mesaj bırakılır.
+   * Consumer, bu mesajı alarak mail gönderir.
+   * Gönderilen içerikler Redis’te kısa süreli, 
+     veritabanında kalıcı olarak tutulur.
+
+4. Aynı içerik bir kullanıcıya ikinci kez gönderilmez.
+
+---
+## Loglama Sistemi
+* Logback, logları TCP soketi üzerinden Logstash'a gönderecek şekilde yapılandırılmıştır.
+* Kibana, bu logları `spring-boot-logs` index'i üzerinden görselleştirir.
+* INFO, WARN, ERROR seviyelerinde loglar Logstash aracılığıyla Elasticsearch’e iletilir.
+* Kibana üzerinden filtreleme yapılabilir.
 
 ##  Not
 
@@ -90,3 +111,23 @@ spring:
           auth: true
           starttls:
             enable: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      connect-timeout: 1000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+logging:
+  level:
+    root: INFO   # veya DEBUG seviyesine alabilirsin
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n" # Konsol için sade bir format
+  file:
+    name: logs/application.log  # İstersen dosyaya da yazsın
