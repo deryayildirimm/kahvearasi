@@ -54,6 +54,7 @@ public class SentContentConsumer {
             boolean alreadySent = sentContentRepository.
                     existsByUserIdAndContentId(user.getId(), content.getId());
             if (alreadySent) {
+
                 System.out.println("Bu içerik zaten gönderilmişti.");
                 return;
             }
@@ -69,7 +70,7 @@ public class SentContentConsumer {
 
             System.out.println("Mesaj başarıyla işlendi. ID: " + sentContent.getId());
 
-            asyncMailDispatcher.asyncSend("invalid@@invalid", user.getUserName(), content.getTitle(),  content.getBody());
+            asyncMailDispatcher.asyncSend(user.getEmail(), user.getUserName(), content.getTitle(),  content.getBody());
 
 
         } catch (BadRequestException e) {

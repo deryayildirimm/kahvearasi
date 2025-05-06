@@ -15,8 +15,8 @@ Amaç: Güne edebiyatla, huzurla ve sade bir keyifle başlamalarını sağlamak.
 - Spring Boot 3
 - PostgreSQL (Docker ile)
 - Redis (içerik önbellekleme için _ eklenicek)
-- RabbitMQ (mesaj kuyruğu ve asenkron işlemler için _ eklenicek)
-- Spring Mail (e-posta gönderimi _ eklenicek)
+- RabbitMQ (mesaj kuyruğu ve asenkron işlemler için)
+- Spring Mail (e-posta gönderimi )
 - Docker Compose
 - Swagger UI (API dokümantasyonu)
 - GitHub Actions (CI/CD – ileride eklenecek)
