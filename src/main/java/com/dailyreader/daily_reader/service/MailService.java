@@ -3,6 +3,7 @@ package com.dailyreader.daily_reader.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.retry.annotation.Backoff;
@@ -24,6 +25,7 @@ public class MailService {
                        TemplateEngine templateEngine) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+
     }
 
     @Retryable(
@@ -31,28 +33,40 @@ public class MailService {
             retryFor = {MessagingException.class},
             backoff = @Backoff(delay = 5000)
     )
-    public void sendEmail(String to, String userName, String contentTitle, String contentBody) throws MessagingException {
+    public void sendEmail(String to, String userName, String contentTitle, String contentBody) {
 
-        log.info("📨 Mail gönderimi denemesi başlatılıyor → Alıcı: {}", to);
-        Context context = new Context();
-        context.setVariable("userName", userName );
-        context.setVariable("contentTitle", contentTitle);
-        context.setVariable("contentBody", contentBody);
 
-        String htmlContent = templateEngine.process("mail-template", context);
+        try{
+            MDC.put("receiver", to);
+            MDC.put("userName", userName);
+            log.info("📨 Mail gönderimi denemesi başlatılıyor → Alıcı: {}", to);
+            Context context = new Context();
+            context.setVariable("userName", userName );
+            context.setVariable("contentTitle", contentTitle);
+            context.setVariable("contentBody", contentBody);
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setTo(to);
-        helper.setSubject("Your Daily Content ✉️");
-        helper.setText(htmlContent, true); // ikinci parametre: true → HTML format
+            String htmlContent = templateEngine.process("mail-template", context);
 
-        log.info("✅ Mail başarıyla gönderildi → {}", to);
-        mailSender.send(message);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("Your Daily Content ✉️");
+            helper.setText(htmlContent, true); // ikinci parametre: true → HTML format
+
+            log.info("✅ Mail başarıyla gönderildi → {}", to);
+            mailSender.send(message);
+        }catch (MessagingException exception){
+            log.warn("Email gönderimi başarısız");
+            log.error("Email gönderimi başarısız oldu", exception);
+        }finally {
+            MDC.clear();
+        }
+
     }
 
     @Recover
     public void recover(MessagingException e, String to, String subject, String htmlContent) {
+        log.warn("Çok fazla denendi. Başarısız olduk.");
         log.error("❌ Retry limitine ulaşıldı. Mail gönderilemedi → Alıcı: {} | Hata: {}", to, e.getMessage());
 
 
