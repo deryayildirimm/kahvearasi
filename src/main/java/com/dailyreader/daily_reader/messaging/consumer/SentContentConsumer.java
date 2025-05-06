@@ -5,14 +5,13 @@ import com.dailyreader.daily_reader.entity.SentContent;
 import com.dailyreader.daily_reader.entity.User;
 import com.dailyreader.daily_reader.exception.BadRequestException;
 import com.dailyreader.daily_reader.service.AsyncMailDispatcher;
-import com.dailyreader.daily_reader.service.RedisService;
 import com.dailyreader.daily_reader.service.SentContentTransactionalService;
 import com.dailyreader.daily_reader.messaging.config.RabbitMQConfig;
 import com.dailyreader.daily_reader.messaging.message.SentContentMessage;
 import com.dailyreader.daily_reader.repository.ContentRepository;
 import com.dailyreader.daily_reader.repository.SentContentRepository;
 import com.dailyreader.daily_reader.repository.UserRepository;
-import jakarta.mail.MessagingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -32,7 +31,6 @@ public class SentContentConsumer {
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
     private final AsyncMailDispatcher asyncMailDispatcher;
-    private final RedisService redisService;
     private final StringRedisTemplate redisTemplate;
 
     public SentContentConsumer(
@@ -40,13 +38,13 @@ public class SentContentConsumer {
             SentContentTransactionalService transactionalService,
             UserRepository userRepository,
             ContentRepository contentRepository,
-            AsyncMailDispatcher asyncMailDispatcher, RedisService redisService, StringRedisTemplate redisTemplate) {
+            AsyncMailDispatcher asyncMailDispatcher,
+            StringRedisTemplate redisTemplate) {
         this.sentContentRepository = sentContentRepository;
         this.transactionalService = transactionalService;
         this.userRepository = userRepository;
         this.contentRepository = contentRepository;
         this.asyncMailDispatcher = asyncMailDispatcher;
-        this.redisService = redisService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -82,7 +80,7 @@ public class SentContentConsumer {
                     .build();
 
 
-            transactionalService.persist(sentContent); // 🔥 KAYIT BURADA GERÇEKLEŞİR
+            transactionalService.persist(sentContent); //  KAYIT BURADA GERÇEKLEŞİR
 
             redisTemplate.opsForValue().set(key, "true", Duration.ofDays(7)); // Yeni gönderim → Redis'e ekle
             System.out.println("Kayıt edildi ve mail gönderiliyor → " + key);
