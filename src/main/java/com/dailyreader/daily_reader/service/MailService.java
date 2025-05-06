@@ -25,6 +25,7 @@ public class MailService {
                        TemplateEngine templateEngine) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+
     }
 
     @Retryable(
@@ -33,6 +34,7 @@ public class MailService {
             backoff = @Backoff(delay = 5000)
     )
     public void sendEmail(String to, String userName, String contentTitle, String contentBody) {
+
 
         try{
             MDC.put("receiver", to);

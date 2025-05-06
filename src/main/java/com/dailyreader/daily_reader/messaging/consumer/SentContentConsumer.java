@@ -5,6 +5,7 @@ import com.dailyreader.daily_reader.entity.SentContent;
 import com.dailyreader.daily_reader.entity.User;
 import com.dailyreader.daily_reader.exception.BadRequestException;
 import com.dailyreader.daily_reader.service.AsyncMailDispatcher;
+import com.dailyreader.daily_reader.service.RedisService;
 import com.dailyreader.daily_reader.service.SentContentTransactionalService;
 import com.dailyreader.daily_reader.messaging.config.RabbitMQConfig;
 import com.dailyreader.daily_reader.messaging.message.SentContentMessage;
@@ -12,38 +13,53 @@ import com.dailyreader.daily_reader.repository.ContentRepository;
 import com.dailyreader.daily_reader.repository.SentContentRepository;
 import com.dailyreader.daily_reader.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Component
 public class SentContentConsumer {
 
+    private static final Logger log = LoggerFactory.getLogger(SentContentConsumer.class);
     private final SentContentRepository sentContentRepository;
     private final SentContentTransactionalService transactionalService;
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
     private final AsyncMailDispatcher asyncMailDispatcher;
+    private final RedisService redisService;
+    private final StringRedisTemplate redisTemplate;
 
     public SentContentConsumer(
             SentContentRepository sentContentRepository,
             SentContentTransactionalService transactionalService,
             UserRepository userRepository,
             ContentRepository contentRepository,
-            AsyncMailDispatcher asyncMailDispatcher) {
+            AsyncMailDispatcher asyncMailDispatcher, RedisService redisService, StringRedisTemplate redisTemplate) {
         this.sentContentRepository = sentContentRepository;
         this.transactionalService = transactionalService;
         this.userRepository = userRepository;
         this.contentRepository = contentRepository;
         this.asyncMailDispatcher = asyncMailDispatcher;
+        this.redisService = redisService;
+        this.redisTemplate = redisTemplate;
     }
 
     @RabbitListener(queues = RabbitMQConfig.SENT_CONTENT_QUEUE)
-    public void receiveMessage(SentContentMessage message) throws MessagingException {
+    public void receiveMessage(SentContentMessage message) {
         System.out.println("RabbitMQ → Kuyruktan mesaj alındı: " + message);
         System.out.println("Dinlenen Kuyruk : " + RabbitMQConfig.SENT_CONTENT_QUEUE);
+
+        String key = "sent:user:" + message.userId() + ":content:" + message.contentId();
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            System.out.println("Redis: Bu içerik zaten gönderilmiş.");
+            return;
+        }
 
         try {
             User user = userRepository.findById(message.userId())
@@ -54,8 +70,8 @@ public class SentContentConsumer {
             boolean alreadySent = sentContentRepository.
                     existsByUserIdAndContentId(user.getId(), content.getId());
             if (alreadySent) {
-
                 System.out.println("Bu içerik zaten gönderilmişti.");
+                redisTemplate.opsForValue().set(key, "true", Duration.ofDays(7)); // Redis'te eksikti → ekle
                 return;
             }
 
@@ -68,6 +84,9 @@ public class SentContentConsumer {
 
             transactionalService.persist(sentContent); // 🔥 KAYIT BURADA GERÇEKLEŞİR
 
+            redisTemplate.opsForValue().set(key, "true", Duration.ofDays(7)); // Yeni gönderim → Redis'e ekle
+            System.out.println("Kayıt edildi ve mail gönderiliyor → " + key);
+            log.info("Kayıt edildi ve mail gönderiliyor → " + key);
             System.out.println("Mesaj başarıyla işlendi. ID: " + sentContent.getId());
 
             asyncMailDispatcher.asyncSend(user.getEmail(), user.getUserName(), content.getTitle(),  content.getBody());
