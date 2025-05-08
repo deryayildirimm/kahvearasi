@@ -131,3 +131,10 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n" # Konsol için sade bir format
   file:
     name: logs/application.log  # İstersen dosyaya da yazsın
+```
+---
+
+## Medium Yazısı
+Bu projeyle ilgili kurulum sürecini ve ELK Stack entegrasyonunu detaylı anlattığım yazı:
+
+👉 [Logların Büyüsünü Keşfet: Spring Boot + Docker ile Merkezi Loglama (ELK Stack) Kurulumu](https://medium.com/@deryayildirimm/loglar%C4%B1n-b%C3%BCy%C3%BCs%C3%BCn%C3%BC-ke%C5%9Ffet-spring-boot-docker-ile-merkezi-loglama-elk-stack-kurulumu-84b3e413cf3c)
